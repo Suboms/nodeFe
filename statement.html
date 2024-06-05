@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+      }
+
+      td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <table>
+      <thead id="tableHead">
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Deposit</th>
+          <th>Withdrawal</th>
+          <th>Balance</th>
+        </tr>
+      </thead>
+      <tbody id="tableData"></tbody>
+    </table>
+
+    <script>
+      const getData = async () => {
+        const response = await fetch("http://localhost:3500/api/statement", {
+          method: "get",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+        const data = await response.json();
+        return data;
+      };
+
+      const statement = async () => {
+        const data = await getData();
+        const statementData = data.message;
+        statementData.forEach((element) => {
+          console.log(element);
+          const options = {
+            year: "numeric",
+            month: "long",
+            day: "2-digit",
+          };
+          const transactionDate = new Date(
+            element.statementData.transactionDate
+          );
+          const creditInfo =
+            element.statementData.transactionType === "credit"
+              ? element.statementData.transactionAmount
+              : "";
+            
+            const debitInfo = element.statementData.transactionType === "debit"
+              ? element.statementData.transactionAmount
+              : "";
+          const tableRow = document.createElement("tr");
+          const tableData = `
+            <td>${transactionDate.toLocaleDateString("en-GB", options)}</td>
+            <td>${element.statementData.description}</td>
+            <td>${creditInfo}</td>
+            <td>${debitInfo}</td>
+            <td>${element.statementData.accountBalance}</td>
+          `;
+          tableRow.innerHTML = tableData;
+          document.getElementById("tableData").appendChild(tableRow);
+        });
+      };
+      statement();
+    </script>
+  </body>
+</html>

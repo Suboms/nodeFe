@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index</title>
+  </head>
+  <body>
+    <h1 id="welcome"></h1>
+    <button id="signupButton" onclick="window.location.href = 'login.html'">
+      Sign In
+    </button>
+
+    <button
+      id="transactionButton"
+      onclick="window.location.href = 'transaction.html'">
+      Transaction
+    </button>
+
+    <button
+      id="statementButton"
+      onclick="window.location.href = 'statement.html'">
+      Statement
+    </button>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const welcomeHeader = document.getElementById("welcome");
+
+        const getAccessToken = () => {
+          return localStorage.getItem("accessToken");
+        };
+
+        const displayButtons = (accessToken) => {
+          const signupButton = document.getElementById("signupButton");
+          const transactionButton =
+            document.getElementById("transactionButton");
+          const statementButton = document.getElementById("statementButton");
+          if (!accessToken) {
+            signupButton.style.display = "block";
+            transactionButton.style.display = "none";
+            statementButton.style.display = "none";
+          } else {
+            signupButton.style.display = "none";
+            transactionButton.style.display = "block";
+            statementButton.style.display = "block";
+          }
+        };
+
+        const fetchUserData = async (accessToken) => {
+          try {
+            const response = await fetch(
+              "http://localhost:3500/api/userprofile",
+              {
+                method: "get",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              }
+            );
+            const data = await response.json();
+            
+            if (!response.ok) {
+              localStorage.removeItem("accessToken");
+              window.location.href = "login.html";
+              return;
+            }
+            return data;
+          } catch (error) {
+            console.error(error);
+            return null;
+          }
+        };
+
+        const userData = async () => {
+          const accessToken = getAccessToken();
+          displayButtons(accessToken);
+          if (!accessToken) {
+            return null;
+          }
+          const data = await fetchUserData(accessToken);
+          return data;
+        };
+
+        const displayUserData = (userData) => {
+          if (!userData) {
+            let headerText = "Welcome to our bank";
+            welcomeHeader.textContent = headerText;
+            return;
+          }
+          const { user, userAccount } = userData;
+          const balance = document.createElement("p");
+          const accountNumber = document.createElement("p");
+
+          welcomeHeader.textContent = `Welcome ${user.userName}`;
+          balance.textContent = `Your account balance is: $${userAccount.accountBalance}`;
+          accountNumber.textContent = `Your account number is: ${userAccount.accountNum}`;
+
+          welcomeHeader.after(balance, accountNumber);
+        };
+
+        const getUser = async () => {
+          const useData = await userData();
+          displayUserData(useData);
+        };
+
+        getUser();
+      });
+    </script>
+  </body>
+</html>
