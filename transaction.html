@@ -43,7 +43,7 @@
 
     <script>
       const getToken = () => {
-        return localStorage.getItem("refreshToken");
+        return localStorage.getItem("accessToken");
       };
 
       const transactionForm = document.getElementById("transactionTestform");
@@ -64,7 +64,7 @@
           );
         }
 
-        const response = await fetch("http://localhost:3500/api/transaction", {
+        const response = await fetch("https://nodeproject-ql57.onrender.com/api/transaction", {
           method: "post",
           body: JSON.stringify(jsonData),
           headers: {
